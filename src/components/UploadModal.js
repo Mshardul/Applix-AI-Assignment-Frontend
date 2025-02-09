@@ -5,6 +5,7 @@ import axios from "axios";
 const UploadModal = ({ open, onClose, onUpload }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleFileChange = (event) => {
@@ -28,11 +29,18 @@ const UploadModal = ({ open, onClose, onUpload }) => {
       const response = await axios.post("http://127.0.0.1:8000/upload/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+      console.log(response);
+      if(response?.data?.status?.toLowerCase() === "success") {
+        setIsSuccess(true);
+        setMessage(`Success: ${response.data.message}`);
+      } else {
+        setIsSuccess(false);
+        setMessage(`Error: ${error.response?.data?.message}`);
+      }
       setMessage(`Success: ${response.data.message}`);
       onUpload(); // Refresh data after upload
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.detail || "Failed to upload file"}`);
+      setMessage(`Error: ${error.response?.data?.message || "Failed to upload file"}`);
     } finally {
       setUploading(false);
       setSelectedFile(null);
@@ -46,7 +54,9 @@ const UploadModal = ({ open, onClose, onUpload }) => {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Typography>Select a CSV or XLSX file to upload:</Typography>
           <input type="file" accept=".csv, .xlsx" onChange={handleFileChange} />
-          {message && <Typography color="error">{message}</Typography>}
+          {message && (
+            <Typography color={isSuccess ? "success" : "error"}>{message}</Typography>
+          )}
         </Box>
       </DialogContent>
       <DialogActions>
