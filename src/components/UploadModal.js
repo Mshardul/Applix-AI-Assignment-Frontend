@@ -26,7 +26,7 @@ const UploadModal = ({ open, onClose, onUpload }) => {
     setMessage("");
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/upload/", formData, {
+      const response = await axios.post("https://applix-ai-assignment-production.up.railway.app/upload/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log(response);

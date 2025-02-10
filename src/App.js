@@ -31,7 +31,7 @@ const App = () => {
         "end_time": endDate
       };
       console.log("params: ", params);
-      const response = await axios.get("http://127.0.0.1:8000/retrieve/", { params });
+      const response = await axios.get("https://applix-ai-assignment-production.up.railway.app/retrieve/", { params });
       console.log(response);
       if(response?.data?.data) {
         setTemperatureDataChart(response.data.data.chart_data || {});
