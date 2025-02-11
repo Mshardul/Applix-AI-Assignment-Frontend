@@ -113,22 +113,22 @@ const App = () => {
           <Stack spacing={4}>
 
             <Box>
-              <Typography variant="h6" gutterBottom>
-                Temperature Trends (Last 30 Days)
+              <Typography variant="h5" gutterBottom>
+                Temperature Chart
               </Typography>
               <TemperatureChart data={temperatureDataChart} />
             </Box>
 
             <Box>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h5" gutterBottom>
                 Temperature Values
               </Typography>
               <DataTable data={temperatureDataTable} />
             </Box>
 
             <Box>
-              <Typography variant="h6" gutterBottom>
-                Statistics
+              <Typography variant="h5" gutterBottom>
+                Temperature Statistics
               </Typography>
               <StatisticsTable data={statisticsDataTable} />
             </Box>
