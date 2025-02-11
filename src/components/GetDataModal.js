@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogTitle, DialogContent, Button, DialogActions, Typography, TextField, Box, CircularProgress } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -8,29 +8,26 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const GetDataModal = ({ open, onClose, onRetrieve }) => {
-  const defaultStartDateTime = dayjs.utc().format("YYYY-MM-DDTHH:mm"); // Current time
-  const defaultEndDateTime = dayjs.utc().add(30, "minute").format("YYYY-MM-DDTHH:mm"); // +30 mins
-
-  const [startDateTime, setStartDateTime] = useState(defaultStartDateTime);
-  const [endDateTime, setEndDateTime] = useState(defaultEndDateTime);
+const GetDataModal = ({ open, onClose, onRetrieve, startDateTime, endDateTime }) => {
+  const [localStartDateTime, setLocalStartDateTime] = useState(startDateTime);
+  const [localEndDateTime, setLocalEndDateTime] = useState(endDateTime);
 
   useEffect(() => {
     if (open) {
-      setStartDateTime(defaultStartDateTime);
-      setEndDateTime(defaultEndDateTime);
+      setLocalStartDateTime(startDateTime);
+      setLocalEndDateTime(endDateTime);
     }
-  }, [open]); // Reset times when modal opens
+  }, [open, startDateTime, endDateTime]);
 
   const handleRetrieve = () => {
-    console.log("pre set: ", startDateTime, endDateTime);
+    console.log("pre set: ", localStartDateTime, localEndDateTime);
+    if (!localStartDateTime || !localEndDateTime || localStartDateTime > localEndDateTime) {
+      console.error("Invalid date range selected");
+      return;
+    }
 
-    const startTimestamp = startDateTime ? dayjs.utc(startDateTime).unix() : dayjs.utc(defaultStartDateTime).unix();
-    const endTimestamp = endDateTime ? dayjs.utc(endDateTime).unix() : dayjs.utc(defaultEndDateTime).unix();
-
-    console.log("datetime set: ", startDateTime, endDateTime);
-    console.log("timestamp calculated: ", startTimestamp, endTimestamp);
-    onRetrieve(startTimestamp, endTimestamp);
+    console.log("Retrieving data from", localStartDateTime, "to", localEndDateTime);
+    onRetrieve(localStartDateTime, localEndDateTime);
     onClose();
   };
 
@@ -39,17 +36,17 @@ const GetDataModal = ({ open, onClose, onRetrieve }) => {
       <DialogTitle>Retrieve Temperature Data</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="textSecondary">
-          Please enter Date & Time in **UTC**
+          Please enter Date & Time in <strong>UTC</strong>
         </Typography>
         <TextField
           label="Start Date & Time (UTC)"
           type="datetime-local"
           fullWidth
           InputLabelProps={{ shrink: true }}
-          value={startDateTime}
+          value={dayjs.utc(localStartDateTime * 1000).format("YYYY-MM-DDTHH:mm")}
           onChange={(e) => {
             console.log("setting start date time: ", e);
-            setStartDateTime(e.target.value + "");
+            setLocalStartDateTime(dayjs.utc(e.target.value).unix());
           }}
           sx={{ mt: 2 }}
         />
@@ -58,10 +55,10 @@ const GetDataModal = ({ open, onClose, onRetrieve }) => {
           type="datetime-local"
           fullWidth
           InputLabelProps={{ shrink: true }}
-          value={endDateTime}
+          value={dayjs.utc(localEndDateTime * 1000).format("YYYY-MM-DDTHH:mm")}
           onChange={(e) => {
             console.log("setting end date time: ", e);
-            setEndDateTime(e.target.value + "");
+            setLocalEndDateTime(dayjs.utc(e.target.value).unix());
           }}
           sx={{ mt: 2 }}
         />

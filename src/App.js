@@ -7,6 +7,13 @@ import TemperatureChart from "./components/TemperatureChart.js";
 import DataTable from "./components/DataTable.js";
 import axios from "axios";
 import StatisticsTable from "./components/StatisticsTable.js";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+// Extend dayjs with UTC support
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 
 const App = () => {
@@ -18,42 +25,41 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [countdown, setCountdown] = useState(60);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [startDateTime, setStartDateTime] = useState(null);
+  const [endDateTime, setEndDateTime] = useState(null);
 
-  const fetchData = async (startDateArg=null, endDateArg=null) => {
+  const fetchData = async (startDateArg=startDateTime, endDateArg=endDateTime) => {
     setLoading(true);
-    if (startDateArg) setStartDate(startDateArg);
-    if (endDateArg) setEndDate(endDateArg);
+
     try {
-      const params = {
-        "start_time": startDate,
-        "end_time": endDate
-      };
-      console.log("params: ", params);
-      const response = await axios.get("https://applix-ai-assignment-production.up.railway.app/retrieve/", { params });
-      console.log(response);
-      if(response?.data?.data) {
-        setTemperatureDataChart(response.data.data.chart_data || {});
-        setTemperatureDataTable(response.data.data.table_data || []);
-        setStatisticsDataTable(response.data.data.stats_data || []);
-      }
+        const params = { "start_time": startDateArg, "end_time": endDateArg };
+        console.log("Fetching data with params:", params);
+
+        const response = await axios.get("http://localhost:8000/retrieve/", { params });
+
+        if (response?.data?.data) {
+            setTemperatureDataChart(response.data.data.chart_data || {});
+            setTemperatureDataTable(response.data.data.table_data || []);
+            setStatisticsDataTable(response.data.data.stats_data || []);
+            setStartDateTime(startDateArg);
+            setEndDateTime(endDateArg);
+        }
     } catch (error) {
-      console.error("Error fetching data:", error);
+        console.error("Error fetching data:", error);
     } finally {
-      setLoading(false);
-      setCountdown(60);
+        setLoading(false);
+        setCountdown(60);
     }
-  };
+};
 
   // Fetch data on page load
   useEffect(() => {
     const end = Math.floor(Date.now() / 1000);
     const start = end - 30 * 24 * 60 * 60; // Last 30 days
-    setStartDate(start);
-    setEndDate(end);
+    setStartDateTime(start);
+    setEndDateTime(end);
     fetchData(start, end);
-  }, []);
+}, []);
 
   // Auto-refresh logic (fetches every 60 seconds if enabled)
   useEffect(() => {
@@ -78,11 +84,11 @@ const App = () => {
 
       <Container sx={{ marginTop: 10 }}>
 
-        {startDate && endDate && (
+        {startDateTime && endDateTime && (
           <Box sx={{ width: "100%", position: "relative" }}>
             <Alert severity="info" sx={{ borderRadius: 0, width: "100%" }}>
               <AlertTitle>Data Filter Applied</AlertTitle>
-              <strong>{new Date(startDate * 1000).toUTCString()}</strong> - <strong>{new Date(endDate * 1000).toUTCString()}</strong>
+              <strong>{dayjs.utc(startDateTime * 1000).format("DD/MM/YYYY hh:mm A")}</strong> - <strong>{dayjs.utc(endDateTime * 1000).format("DD/MM/YYYY hh:mm A")}</strong>
             </Alert>
           </Box>
         )}
@@ -138,7 +144,9 @@ const App = () => {
       <GetDataModal 
         open={retrieveOpen} 
         onClose={() => setRetrieveOpen(false)} 
-        onRetrieve={(start, end) => fetchData(start, end)} 
+        startDateTime={startDateTime}
+        endDateTime={endDateTime}
+        onRetrieve={(start, end) => fetchData(start, end)}
       />
     </>
   );
