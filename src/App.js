@@ -35,7 +35,7 @@ const App = () => {
         const params = { "start_time": startDateArg, "end_time": endDateArg };
         console.log("Fetching data with params:", params);
 
-        const response = await axios.get("http://https://applix-ai-assignment-production.up.railway.app/retrieve/", { params });
+        const response = await axios.get("https://applix-ai-assignment-production.up.railway.app/retrieve/", { params });
 
         if (response?.data?.data) {
             setTemperatureDataChart(response.data.data.chart_data || {});
